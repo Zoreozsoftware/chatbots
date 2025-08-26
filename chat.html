@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chatbot UI</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: #e5ddd5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    #chat-container {
+      width: 400px;
+      height: 600px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Header */
+    #chat-header {
+      background: #075e54;
+      color: white;
+      padding: 15px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    /* Messages area */
+    #messages {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      background: #ece5dd;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      margin: 6px 0;
+      padding: 10px 14px;
+      border-radius: 8px;
+      max-width: 70%;
+      font-size: 14px;
+      line-height: 1.4;
+      position: relative;
+      word-wrap: break-word;
+    }
+
+    .user {
+      background: #dcf8c6;
+      align-self: flex-end;
+      border-bottom-right-radius: 0;
+    }
+
+    .bot {
+      background: #fff;
+      align-self: flex-start;
+      border-bottom-left-radius: 0;
+    }
+
+    /* Input box */
+    #input-container {
+      display: flex;
+      border-top: 1px solid #ddd;
+      padding: 8px;
+      background: #f0f0f0;
+    }
+
+    #input {
+      flex: 1;
+      border: none;
+      padding: 10px;
+      font-size: 14px;
+      border-radius: 20px;
+      outline: none;
+    }
+
+    #send {
+      background: #075e54;
+      color: white;
+      border: none;
+      padding: 0 16px;
+      margin-left: 8px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    #send:hover {
+      background: #128c7e;
+    }
+  </style>
+</head>
+<body>
+  <div id="chat-container">
+    <div id="chat-header">🛒 ShopBot</div>
+    <div id="messages"></div>
+    <div id="input-container">
+      <input id="input" type="text" placeholder="Type a message..." />
+      <button id="send">➤</button>
+    </div>
+  </div>
+
+  <script>
+    const messagesDiv = document.getElementById("messages");
+    const input = document.getElementById("input");
+    const sendBtn = document.getElementById("send");
+
+    function addMessage(text, sender) {
+      const msg = document.createElement("div");
+      msg.classList.add("message", sender);
+      msg.textContent = text;
+      messagesDiv.appendChild(msg);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const text = input.value.trim();
+      if (!text) return;
+
+      addMessage(text, "user");
+      input.value = "";
+
+      try {
+        const res = await fetch("http://localhost:5000/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: text }),
+        });
+        const data = await res.json();
+        addMessage(data.reply, "bot");
+      } catch (err) {
+        addMessage("⚠️ Error connecting to server.", "bot");
+      }
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    input.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+
+    // First bot message
+    addMessage("👋 Hi! I’m ShopBot. You can ask about products, orders, or FAQs.", "bot");
+  </script>
+</body>
+</html>
